@@ -1,24 +1,25 @@
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
+#include <vector>
 #include <PubSubClient.h>
 
-const char* ssid = "Sanya";
-const char* password = "012345678";
+#define BUFFER_SIZE 300
 
-const char *mqtt_server = "mqtt.by";
+const char* ssid = "";
+const char* password = "";
+
+const char *mqtt_server = "";
 const int mqtt_port = 1883;
-const char *mqtt_user = "HerrPhoton";
-const char *mqtt_password = "d77imues";
 
 WiFiClient wifi_client;
 PubSubClient mqqt_client(wifi_client);
 
-char msg[2];
+char buffer[BUFFER_SIZE];
 
 const uint8_t BUTTON_PIN = 0;
 
-const uint8_t GREEN_LED = 16;
-const uint8_t YELLOW_LED = 5;
-const uint8_t RED_LED = 4;
+const uint8_t GREEN_LED = 18;
+const uint8_t YELLOW_LED = 19;
+const uint8_t RED_LED = 21;
 
 struct TrafficLight
 {
@@ -108,7 +109,7 @@ void ICACHE_RAM_ATTR isr()
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   attachInterrupt(BUTTON_PIN, isr, RISING);
@@ -121,6 +122,7 @@ void setup()
   digitalWrite(YELLOW_LED, LOW);
   digitalWrite(RED_LED, LOW);
 
+  Serial.println("");
   Serial.print("Connecting to ");
   Serial.print(ssid);
 
@@ -138,19 +140,20 @@ void setup()
   Serial.println(WiFi.localIP());
   Serial.println("");
 
-  Serial.println("Connecting to MQTT server");
+  Serial.print("Connecting to MQTT server");
   mqqt_client.setServer(mqtt_server, 1883);
 
-  String clientId = "ESP8266Client-";
+  String clientId = "ESP32Client-";
   clientId += String(random(0xffff), HEX);
 
   while (!mqqt_client.connected())
   {
-    mqqt_client.connect(clientId.c_str(), mqtt_user, mqtt_password);
+    mqqt_client.connect(clientId.c_str());
     Serial.print(".");
-    delay(5000);
+    delay(500);
   }
 
+  Serial.println("");
   Serial.println("Connected!");
 }
 
@@ -160,14 +163,16 @@ void loop()
   
   int id = cur_i++ % (state_ptr->ids).size();
   change_state(state_ptr->ids[id]);
+
+  String msg("{");
+  
+  msg += String("\"green\":") + String(traffic_light.g);
+  msg += String(",\"yellow\":") + String(traffic_light.y);
+  msg += String(",\"red\":") + String(traffic_light.r);
+  msg += String("}");
+
+  snprintf(buffer, BUFFER_SIZE, "%s", msg.c_str());
+  mqqt_client.publish("/user/HerrPhoton/traffic_light", buffer);
+
   delay(state_ptr->delays[id]);
-
-  msg[0] = (char)traffic_light.g;
-  mqqt_client.publish("/user/HerrPhoton/green", msg);
-
-  msg[0] = (char)traffic_light.y;
-  mqqt_client.publish("/user/HerrPhoton/yellow", msg);
-
-  msg[0] = (char)traffic_light.r;
-  mqqt_client.publish("/user/HerrPhoton/red", msg);
 }
