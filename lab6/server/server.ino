@@ -107,6 +107,10 @@ void ICACHE_RAM_ATTR isr()
     Serial.println("unregulated");
 }
 
+void callback(char* topic, byte* payload, unsigned int length) {
+  isr();
+}
+
 void setup() 
 {
   Serial.begin(115200);
@@ -152,6 +156,9 @@ void setup()
     Serial.print(".");
     delay(500);
   }
+
+  mqqt_client.setCallback(callback);
+  mqqt_client.subscribe("/switch");
 
   Serial.println("");
   Serial.println("Connected!");
