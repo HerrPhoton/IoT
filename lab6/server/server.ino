@@ -7,7 +7,7 @@
 const char* ssid = "";
 const char* password = "";
 
-const char *mqtt_server = "";
+const char *mqtt_server = "192.168.147.231";
 const int mqtt_port = 1883;
 
 WiFiClient wifi_client;
@@ -172,7 +172,7 @@ void loop()
   msg += String("}");
 
   snprintf(buffer, BUFFER_SIZE, "%s", msg.c_str());
-  mqqt_client.publish("/user/HerrPhoton/traffic_light", buffer);
+  mqqt_client.publish("/traffic_light", buffer);
 
   delay(state_ptr->delays[id]);
 }
