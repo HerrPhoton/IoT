@@ -3,8 +3,8 @@
 #include <ESPAsyncWebServer.h>
 
 
-const char* ssid = "wifi_name";
-const char* password = "wifi_password";
+const char* ssid = "";
+const char* password = "";
 
 AsyncWebServer server(80);
 

@@ -2,8 +2,8 @@
 #include <WiFiClient.h>
 #include <WiFi.h>
 
-const char* ssid = "wifi name";
-const char* password = "wifi password";
+const char* ssid = "";
+const char* password = "";
 
 String serverIP = "http://192.168.70.38/";
 

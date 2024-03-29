@@ -4,8 +4,8 @@
 #include <WiFi.h>
 
 
-const char* ssid = "wifi_name";
-const char* password = "wifi_password";
+const char* ssid = "";
+const char* password = "";
 
 const char* serverIP = "http://192.168.147.38/";
 
