@@ -7,7 +7,7 @@
 const char* ssid = "";
 const char* password = "";
 
-const char *mqtt_server = "192.168.147.231";
+const char *mqtt_server = "192.168.181.231";
 const int mqtt_port = 1883;
 
 WiFiClient wifi_client;

@@ -1,13 +1,13 @@
-#include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <DHT.h>
 
 #define BUFFER_SIZE 300
 
 const char* ssid = "";
 const char* password = "";
 
-const char *mqtt_server = "192.168.181.231";
+const char *mqtt_server = "";
 const int mqtt_port = 1883;
 
 WiFiClient wifi_client;
@@ -15,32 +15,15 @@ PubSubClient mqqt_client(wifi_client);
 
 char buffer[BUFFER_SIZE];
 
-const uint8_t GREEN_LED = 16;
-const uint8_t YELLOW_LED = 5;
-const uint8_t RED_LED = 4;
-
-
-void callback(char* topic, byte* payload, unsigned int length) 
-{
-  StaticJsonDocument<BUFFER_SIZE> doc; 
-  deserializeJson(doc, payload);
-
-  digitalWrite(GREEN_LED, doc["green"]);
-  digitalWrite(YELLOW_LED, doc["yellow"]);
-  digitalWrite(RED_LED, doc["red"]);
-}
+const int DHT_PIN = 5;
+DHT dht(DHT_PIN, DHT11);
 
 void setup() 
 {
   Serial.begin(9600);
 
-  pinMode(GREEN_LED, OUTPUT);
-  pinMode(YELLOW_LED, OUTPUT);
-  pinMode(RED_LED, OUTPUT);
-
-  digitalWrite(GREEN_LED, LOW);
-  digitalWrite(YELLOW_LED, LOW);
-  digitalWrite(RED_LED, LOW);
+  pinMode(DHT_PIN, INPUT);
+  dht.begin();
 
   Serial.println("");
   Serial.print("Connecting to ");
@@ -61,7 +44,7 @@ void setup()
   Serial.println("");
 
   Serial.print("Connecting to MQTT server");
-  mqqt_client.setServer(mqtt_server, 1883);
+  mqqt_client.setServer(mqtt_server, mqtt_port);
 
   String clientId = "ESP8266Client-";
   clientId += String(random(0xffff), HEX);
@@ -73,14 +56,32 @@ void setup()
     delay(500);
   }
 
-  mqqt_client.setCallback(callback);
-  mqqt_client.subscribe("/traffic_light");
-
   Serial.println("");
   Serial.println("Connected!");
 }
 
-void loop() 
+void loop()
 {
   mqqt_client.loop();
+
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  if (isnan(temperature) || isnan(humidity))
+      Serial.println("Failed to read from DHT sensor!");
+
+  else
+  {   
+    String msg("{");
+    
+    msg += String("\"temperature\":") + String(temperature);
+    msg += String(",\"humidity\":") + String(humidity);
+    msg += String("}");
+
+    snprintf(buffer, BUFFER_SIZE, "%s", msg.c_str());
+    mqqt_client.publish("/dht", buffer);
+
+    delay(1000);
+  }
+
 }
