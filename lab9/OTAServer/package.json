@@ -1,0 +1,20 @@
+{
+  "name": "otaserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "\t",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "OTA",
+    "esp8266",
+    "esp32",
+    "Server"
+  ],
+  "author": "Sanya",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.19.2"
+  }
+}
